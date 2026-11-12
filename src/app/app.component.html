@@ -1,0 +1,117 @@
+<main class="page-shell">
+  <header class="site-header">
+    <a class="wordmark" href="/" aria-label="Snip home">
+      <span class="wordmark-mark" aria-hidden="true">s</span>
+      <span>snip</span>
+    </a>
+    <span class="header-note">Short links, made simple</span>
+  </header>
+
+  <section class="hero" aria-labelledby="page-title">
+    <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> YOUR LINKS, IN ONE PLACE</p>
+    <h1 id="page-title">Make every link <span>shorter.</span></h1>
+    <p class="hero-copy">A little less URL. A lot more shareable.</p>
+
+    <form class="shorten-form" [formGroup]="linkForm" (ngSubmit)="submitLink()" novalidate>
+      <label class="sr-only" for="long-url">Long URL to shorten</label>
+      <span class="input-icon" aria-hidden="true">↗</span>
+      <input
+        id="long-url"
+        type="url"
+        formControlName="url"
+        placeholder="Paste a long link here…"
+        autocomplete="url"
+        inputmode="url"
+        [attr.aria-invalid]="urlControl.invalid && urlControl.touched"
+        [attr.aria-describedby]="urlControl.invalid && urlControl.touched ? 'url-error' : 'url-hint'"
+      />
+      <button type="submit" [disabled]="submitting()">
+        @if (submitting()) {
+          <span class="button-spinner" aria-hidden="true"></span>
+          Creating
+        } @else {
+          Shorten link <span aria-hidden="true">→</span>
+        }
+      </button>
+    </form>
+
+    <p class="input-hint" id="url-hint">Use a complete URL starting with http:// or https://</p>
+    @if (urlControl.touched && urlControl.hasError('required')) {
+      <p class="field-error" id="url-error" role="alert">Add a URL to get started.</p>
+    } @else if (urlControl.touched && urlControl.hasError('httpUrl')) {
+      <p class="field-error" id="url-error" role="alert">Enter a valid http:// or https:// URL.</p>
+    }
+
+    @if (submitError()) {
+      <p class="notice notice-error" role="alert">{{ submitError() }}</p>
+    }
+    @if (successLink(); as created) {
+      <div class="notice notice-success" role="status" aria-live="polite">
+        <span class="success-icon" aria-hidden="true">✓</span>
+        <span>Your short link is ready</span>
+        <a [href]="created.shortUrl" target="_blank" rel="noopener noreferrer">{{ created.shortUrl }}</a>
+      </div>
+    }
+  </section>
+
+  <section class="links-section" aria-labelledby="links-title">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">YOUR COLLECTION</p>
+        <h2 id="links-title">Recent links</h2>
+      </div>
+      <span class="link-count">{{ links().length }} {{ links().length === 1 ? 'link' : 'links' }}</span>
+    </div>
+
+    @if (loading()) {
+      <div class="state-card" role="status" aria-live="polite">
+        <span class="loading-spinner" aria-hidden="true"></span>
+        <span>Loading your links…</span>
+      </div>
+    } @else if (listError()) {
+      <div class="state-card state-error" role="alert">
+        <p>{{ listError() }}</p>
+        <button class="text-button" type="button" (click)="refreshLinks()">Try again</button>
+      </div>
+    } @else if (links().length === 0) {
+      <div class="state-card empty-state">
+        <span class="empty-icon" aria-hidden="true">↗</span>
+        <h3>No links yet</h3>
+        <p>Your shortened links will show up here.</p>
+      </div>
+    } @else {
+      <div class="table-card">
+        <div class="table-scroll">
+          <table>
+            <caption class="sr-only">Your shortened links and their visit counts</caption>
+            <thead>
+              <tr>
+                <th scope="col">Short link</th>
+                <th scope="col">Original URL</th>
+                <th scope="col" class="hits-column">Visits</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (link of links(); track link.code) {
+                <tr>
+                  <td>
+                    <a class="short-link" [href]="link.shortUrl" target="_blank" rel="noopener noreferrer">
+                      <span class="link-icon" aria-hidden="true">↗</span>{{ link.code }}
+                    </a>
+                  </td>
+                  <td class="original-url" [title]="link.url">{{ link.url }}</td>
+                  <td class="hits-cell">{{ link.hits }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </section>
+
+  <footer class="site-footer">
+    <span>Simple links. No noise.</span>
+    <span class="footer-mark" aria-hidden="true">✳</span>
+  </footer>
+</main>
