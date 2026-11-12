@@ -9,6 +9,7 @@ Snip is a small URL shortener with one backend and two clients: an Angular web a
 | `backend/` | `backend` | Bun API server |
 | `frontend/` | `frontend` | Angular 19 web app |
 | `cli/` | `cli` | Zero-dependency Node.js CLI |
+| `bundle/` | `bundle` | Generated release: API server, built UI, and CLI |
 
 Links are stored in an in-memory `Map` and are cleared when the backend restarts.
 
@@ -58,3 +59,11 @@ git add backend && git commit -m "Bump backend submodule" && git push
 ```
 
 Repeat with `frontend` or `cli` as needed. A superproject commit pins the exact component commit, so pushing a component branch alone does not update `main`.
+
+## Generated release
+
+`bundle/` is generated output; do not edit it by hand. From the `main` checkout, run `node scripts/build-bundle.mjs` to update source submodules, build the Angular app, assemble the release, and commit changed bundle and submodule pointers. The script is safe to rerun when nothing changed. Add `--push` to push the generated `bundle` branch and the `main` superproject.
+
+The bundle runs as one Bun process, serving the UI, API, and short-link redirects on port `3000`. Its Dockerfile uses `PORT=3000` by default; the Railway domain target port must match the service's `PORT`.
+
+The Docker workflow tests the frontend and bundled API/CLI, scans the image and shipped frontend dependencies, and publishes GHCR `latest` and short-SHA tags only when the checks pass. The bundle workflow runs hourly or manually; it intentionally has no push trigger.
